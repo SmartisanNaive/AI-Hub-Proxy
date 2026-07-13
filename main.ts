@@ -199,6 +199,10 @@ async function handler(request: Request): Promise<Response> {
     }
 
     const responseHeaders = new Headers(response.headers);
+    // fetch() 会自动解压 gzip/deflate 响应体，但可能仍保留原 Content-Encoding/Content-Length 头，
+    // 导致下游客户端尝试二次解压而报错（如 "gzip: invalid header"）。
+    responseHeaders.delete("content-encoding");
+    responseHeaders.delete("content-length");
     responseHeaders.set("X-Content-Type-Options", "nosniff");
     responseHeaders.set("X-Frame-Options", "DENY");
     responseHeaders.set("Referrer-Policy", "no-referrer");
