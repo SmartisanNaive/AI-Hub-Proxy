@@ -100,6 +100,8 @@ function isAllowedHeader(name: string): boolean {
   // 厂商实验性功能头
   if (lower.startsWith("openai-")) return true;
   if (lower.startsWith("anthropic-")) return true;
+  // OpenRouter 等上游用 referer 识别调用来源并参与排名
+  if (lower === "referer" || lower === "http-referer") return true;
   return false;
 }
 
@@ -143,7 +145,7 @@ async function handler(request: Request): Promise<Response> {
     return new Response("Not Found", { status: 404 });
   }
 
-  const targetUrl = `${apiMapping[prefix]}${rest}`;
+  const targetUrl = `${apiMapping[prefix]}${rest}${url.search}`;
 
   try {
     const headers = new Headers();
@@ -159,6 +161,15 @@ async function handler(request: Request): Promise<Response> {
       body: request.body,
       redirect: "follow",
     });
+
+    // 调试日志：帮助排查上游返回异常的情况
+    if (response.status >= 400) {
+      const cloned = response.clone();
+      const bodyText = await cloned.text();
+      console.error(
+        `[proxy error] ${request.method} ${targetUrl} -> ${response.status} ${response.statusText}: ${bodyText.slice(0, 500)}`,
+      );
+    }
 
     const responseHeaders = new Headers(response.headers);
     responseHeaders.set("X-Content-Type-Options", "nosniff");
