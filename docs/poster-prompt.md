@@ -11,6 +11,8 @@
 
 画面中装饰有精美的故障艺术 (Glitch Art) 元素：极简的黑色几何长条、细密的彩色电子扫描线、错位的色彩偏移纹理（RGB split），以及漂浮的半透明小图标——对话框、锁、地球、API 括号 `{ }`、云朵节点——暗示 AI、安全、跨境访问、API 转发与云端代理。
 
+画面四周悬浮的多个"门户窗口"中，隐约浮现出代表主流 AI 服务的抽象符号：一枚带有螺旋花纹的圆润对话气泡（暗示 ChatGPT）、一组温暖的琥珀色星点连成的星座图案（暗示 Claude）、一对镜像对称的蓝色双生星形（暗示 Gemini），以及其他简洁的几何服务徽章。这些符号以淡描边形式呈现，不直接使用品牌 Logo，仅作为视觉暗示，强调 AI Hub Proxy 连接多家上游 AI 服务的能力。
+
 整体视觉呈现现代平面设计的律动感，色彩以克莱因蓝（#002FA7）、纯净白和淡金色为主，背景简洁明快，氛围宁静且富有诗意。无文字，无水印，高分辨率，2D 平面动漫插画风格，适合作为项目落地页 Hero 图或社交媒体宣传图使用。
 ```
 
@@ -24,6 +26,8 @@ Center stage is an original futuristic mascot girl/boy, appearing as an AI data 
 The composition uses "Window Overlay" and digital collage. The character's silhouette is formed by multiple misaligned rectangular frames; some frame regions are treated as transparent windows revealing a clear blue sky and fluffy cumulonimbus clouds, as if an expansive sky and infinite data space reside within her body. From her palm extend several glowing pale-gold data cables connecting to multiple floating square "portal windows" around the canvas, symbolizing how AI Hub Proxy unifies and forwards requests to multiple upstream services.
 
 The image is decorated with refined Glitch Art elements: minimal black geometric strips, fine colorful scan lines, misaligned RGB split textures, and floating semi-transparent icons — chat bubble, lock, globe, API brackets `{ }`, cloud nodes — hinting at AI, security, cross-border access, API forwarding, and cloud proxy.
+
+Within the multiple floating "portal windows" around the canvas, subtle abstract symbols representing major AI services emerge: a rounded speech bubble with a spiral motif (evoking ChatGPT), a warm amber constellation of connected star dots (evoking Claude), a pair of mirrored symmetrical blue twin star shapes (evoking Gemini), and other simple geometric service badges. These symbols appear as light outlines only, not direct brand logos, serving as visual hints that emphasize AI Hub Proxy's ability to connect multiple upstream AI services.
 
 Overall visual rhythm of modern graphic design. Color palette dominated by Klein blue (#002FA7), pure white, and soft gold. Clean and bright background, serene yet poetic atmosphere. No text, no watermark, high resolution, flat 2D anime illustration style. Suitable as a Hero image for a project landing page or social media promotional artwork.
 ```
