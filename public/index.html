@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>AI Hub Proxy · 统一的 AI 服务反向代理</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="AI Hub Proxy 是一个轻量级反向代理，部署在合规 VPS 上即可中转多个 AI / LLM 服务 API，帮助受限地区统一访问 OpenAI、Claude、Gemini 等。">
+<meta property="og:title" content="AI Hub Proxy · 统一的 AI 服务反向代理">
+<meta property="og:description" content="一个轻量级反向代理，部署在合规 VPS 上即可中转多个 AI / LLM 服务 API，帮助受限地区统一访问 OpenAI、Claude、Gemini 等。">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="/">
+<style>
+@font-face {
+  font-family: "TsangerJinKai02";
+  src: url("https://cdn.jsdelivr.net/gh/AlfredoSequeworthy/TsangerJinKai02@main/TsangerJinKai02-W04.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "TsangerJinKai02";
+  src: url("https://cdn.jsdelivr.net/gh/AlfredoSequeworthy/TsangerJinKai02@main/TsangerJinKai02-W05.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --parchment:    #f5f4ed;
+  --ivory:        #faf9f5;
+  --warm-sand:    #e8e6dc;
+
+  --brand:        #1B365D;
+  --brand-light:  #2D5A8A;
+  --brand-tint:   #EEF2F7;
+
+  --near-black:   #141413;
+  --dark-warm:    #3d3d3a;
+  --olive:        #504e49;
+  --stone:        #6b6a64;
+
+  --border:       #e8e6dc;
+  --border-soft:  #e5e3d8;
+  --line:         #d8d5c8;
+
+  --serif: "TsangerJinKai02", "Source Han Serif SC",
+           "Noto Serif CJK SC", "Songti SC", "STSong",
+           Georgia, serif;
+  --sans:  var(--serif);
+  --mono:  "JetBrains Mono", "SF Mono", Consolas,
+           "TsangerJinKai02", "Source Han Serif SC",
+           monospace;
+  --latin-ui: "PingFang SC", system-ui, -apple-system, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: var(--parchment);
+  color: var(--near-black);
+  font-family: var(--serif);
+  font-size: 15px;
+  line-height: 1.58;
+  letter-spacing: 0.4px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--brand);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+a:hover { color: var(--brand-light); }
+
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 88px 64px 120px;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--brand);
+  color: var(--ivory);
+  font-family: var(--latin-ui);
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.2px;
+  padding: 13px 28px;
+  border-radius: 999px;
+  border: 1.5px solid var(--brand);
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  cursor: pointer;
+  min-width: 158px;
+}
+.btn-primary:hover {
+  background: var(--brand-light);
+  border-color: var(--brand-light);
+  color: var(--ivory);
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--latin-ui);
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--brand);
+  background: transparent;
+  padding: 13px 28px;
+  border-radius: 999px;
+  border: 1.5px solid var(--brand);
+  transition: background 0.15s, color 0.15s, transform 0.15s;
+  cursor: pointer;
+  min-width: 158px;
+}
+.btn-ghost:hover {
+  background: var(--brand-tint);
+  color: var(--brand);
+  transform: translateY(-1px);
+}
+
+.hero {
+  padding-bottom: 48px;
+  border-bottom: 1px solid var(--border-soft);
+  margin-bottom: 80px;
+}
+.eyebrow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--latin-ui);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--stone);
+  margin: 0 0 28px;
+}
+.version-link {
+  color: var(--brand);
+  font-weight: 600;
+}
+.version-link:hover { color: var(--brand-light); }
+
+.hero h1 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 88px;
+  line-height: 1.05;
+  letter-spacing: 0;
+  margin: 0 0 18px;
+  color: var(--near-black);
+  opacity: 0;
+  transform: translateY(10px);
+  filter: blur(6px);
+  animation: hero-rise 900ms cubic-bezier(0.16, 1, 0.3, 1) 120ms forwards;
+}
+@keyframes hero-rise {
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+.hero .tagline {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 1.55;
+  letter-spacing: 0.4px;
+  color: var(--olive);
+  margin: 0 0 28px;
+  max-width: 820px;
+}
+
+.hero-tokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin: 0 0 32px;
+  font-family: var(--latin-ui);
+  font-size: 13px;
+  color: var(--stone);
+}
+.hero-tokens span {
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+}
+.hero-tokens span:not(:last-child)::after {
+  content: "·";
+  color: color-mix(in srgb, var(--stone) 58%, transparent);
+}
+.hero-tokens b {
+  color: var(--dark-warm);
+  font-weight: 500;
+}
+
+.hero-cta {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 4px;
+}
+
+section { margin-bottom: 72px; }
+.section-head { margin-bottom: 24px; }
+.section-num {
+  font-family: var(--latin-ui);
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--brand);
+  letter-spacing: 0.4px;
+  margin: 0 0 6px;
+}
+.section-title {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 34px;
+  line-height: 1.2;
+  color: var(--near-black);
+  margin: 0;
+  letter-spacing: 1.2px;
+}
+.section-lede {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.55;
+  letter-spacing: 0.4px;
+  color: var(--olive);
+  margin: 14px 0 0;
+}
+
+.features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--border-soft);
+}
+.features li {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  column-gap: 36px;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--border-soft);
+  align-items: baseline;
+}
+.features .name {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 22px;
+  color: var(--brand);
+  margin: 0;
+  line-height: 1.25;
+}
+.features .name small {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--serif);
+  font-size: 13px;
+  color: var(--olive);
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+}
+.features .what {
+  font-family: var(--serif);
+  font-size: 15px;
+  line-height: 1.55;
+  letter-spacing: 0.4px;
+  color: var(--dark-warm);
+  margin: 0;
+}
+
+.principles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  border-top: 1px solid var(--border-soft);
+}
+.principles li {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 8px;
+  padding: 22px 28px 22px 0;
+  border-bottom: 1px solid var(--border-soft);
+  align-items: baseline;
+}
+.principles li:nth-child(odd) {
+  padding-right: 32px;
+  border-right: 1px solid var(--border-soft);
+}
+.principles li:nth-child(even) { padding-left: 32px; }
+.principles li:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  border-right: none;
+  padding-right: 0;
+}
+.principles .n {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 18px;
+  color: var(--brand);
+  line-height: 1;
+}
+.principles .body b {
+  display: block;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--near-black);
+  margin-bottom: 4px;
+  letter-spacing: 0.1px;
+}
+.principles .body span {
+  font-size: 13px;
+  color: var(--olive);
+  line-height: 1.5;
+  letter-spacing: 0.4px;
+  font-weight: 400;
+}
+
+.manifesto {
+  font-family: var(--serif);
+  font-size: 20px;
+  line-height: 1.55;
+  letter-spacing: 0.05em;
+  color: var(--near-black);
+  margin: 0 0 28px;
+  font-weight: 400;
+}
+.manifesto em {
+  color: var(--brand);
+  font-style: normal;
+}
+
+pre.code {
+  background: var(--ivory);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 18px 22px;
+  font-family: var(--mono);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--near-black);
+  overflow-x: auto;
+  margin: 0;
+}
+pre.code .c { color: var(--stone); }
+pre.code .k { color: var(--brand); }
+
+.services-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-top: 8px;
+}
+.services-table th,
+.services-table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: top;
+}
+.services-table th {
+  font-family: var(--latin-ui);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--stone);
+  border-bottom: 1px solid var(--border);
+}
+.services-table td:first-child {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--brand);
+}
+.services-table td:last-child {
+  color: var(--olive);
+  font-size: 13px;
+}
+
+.faq-pair { margin-bottom: 24px; }
+.faq-pair:last-child { margin-bottom: 0; }
+.faq dt {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 16px;
+  color: var(--near-black);
+  margin: 0 0 6px;
+  letter-spacing: 0.1px;
+}
+.faq dd {
+  font-family: var(--serif);
+  font-size: 14px;
+  line-height: 1.55;
+  letter-spacing: 0.4px;
+  color: var(--olive);
+  margin: 0;
+}
+.faq code {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--brand);
+  background: var(--brand-tint);
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+.faq-tail {
+  font-family: var(--serif);
+  font-size: 13px;
+  color: var(--stone);
+  margin: 28px 0 0;
+}
+
+footer.foot {
+  margin-top: 56px;
+  padding-top: 40px;
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 48px;
+  font-family: var(--serif);
+  font-size: 13px;
+  color: var(--stone);
+}
+.foot .mark {
+  display: grid;
+  grid-template-columns: 56px auto;
+  grid-template-rows: auto auto;
+  column-gap: 14px;
+  align-items: start;
+}
+.foot .mark-icon {
+  grid-row: 1 / span 2;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: var(--brand);
+  color: var(--ivory);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 500;
+}
+.foot .mark .wm-name {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 28px;
+  color: var(--near-black);
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+.foot .mark .wm-line {
+  font-size: 13px;
+  color: var(--olive);
+  margin-top: 2px;
+}
+.foot .colophon {
+  text-align: right;
+  max-width: 480px;
+}
+.foot .colophon .links {
+  font-family: var(--latin-ui);
+  color: var(--dark-warm);
+  margin-bottom: 16px;
+  line-height: 1.55;
+}
+.foot .colophon .links a {
+  color: var(--dark-warm);
+}
+.foot .colophon .links a:hover { color: var(--brand); }
+.foot .colophon .ethos {
+  color: var(--olive);
+  font-style: italic;
+  line-height: 1.55;
+  max-width: 360px;
+  margin-left: auto;
+}
+
+@media (max-width: 880px) {
+  .page { padding: 64px 32px 80px; }
+  .hero { margin-bottom: 56px; padding-bottom: 32px; }
+  .hero h1 { font-size: 56px; letter-spacing: 0; }
+  .hero .tagline { font-size: 17px; }
+
+  section { margin-bottom: 56px; }
+  .section-title { font-size: 30px; letter-spacing: 0.8px; }
+
+  .features li {
+    grid-template-columns: 1fr;
+    row-gap: 8px;
+    padding: 22px 0;
+  }
+
+  .principles { grid-template-columns: 1fr; }
+  .principles li:nth-child(odd) { border-right: none; padding-right: 0; }
+  .principles li:nth-child(even) { padding-left: 0; }
+
+  .foot {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 32px;
+    padding-top: 32px;
+    margin-top: 48px;
+  }
+  .foot .colophon { text-align: left; max-width: 100%; }
+  .foot .colophon .ethos { margin-left: 0; }
+}
+
+@media (max-width: 480px) {
+  .hero h1 { font-size: 48px; }
+  .hero .tagline { font-size: 16px; }
+  .hero-cta { flex-direction: row; align-items: center; gap: 12px; }
+  .btn-primary,
+  .btn-ghost { min-width: 0; flex: 1; padding: 13px 16px; justify-content: center; }
+  .services-table { font-size: 12.5px; }
+  .services-table th,
+  .services-table td { padding: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero h1 { animation: none; opacity: 1; transform: none; filter: none; }
+}
+</style>
+</head>
+<body>
+<main class="page">
+
+  <header class="hero">
+    <div class="eyebrow">
+      <span><a class="version-link" href="https://github.com/SmartisanNaive/AI-Hub-Proxy">v1.0.0</a></span>
+    </div>
+
+    <h1>AI Hub Proxy</h1>
+
+    <p class="tagline">
+      一个端点，贯通主流 AI 服务。
+    </p>
+
+    <div class="hero-tokens">
+      <span><b>轻量</b> 单容器 Deno 运行</span>
+      <span><b>安全</b> 最小请求头透传</span>
+      <span><b>易部署</b> 一条命令启动</span>
+    </div>
+
+    <div class="hero-cta">
+      <a class="btn-ghost" href="#services">查看服务</a>
+      <a class="btn-primary" href="#deploy">项目部署</a>
+    </div>
+  </header>
+
+  <section>
+    <div class="section-head">
+      <p class="section-num">00 · 简介</p>
+      <h2 class="section-title">它解决了什么问题</h2>
+    </div>
+
+    <p class="manifesto">
+      当你身处无法直接访问 OpenAI、Claude、Gemini、Groq 等服务的地区时，AI Hub Proxy 可以部署在一台合规 VPS 上，作为中间代理。客户端只需连接一个中转端点，服务端统一处理鉴权与转发，从而绕过地域限制，让受限地区也能顺畅使用多家 AI 服务。
+    </p>
+
+    <pre class="code"><code><span class="c"># 以前：客户端需要直接访问多个被限制的域名</span>
+curl https://api.openai.com/v1/chat/completions
+curl https://api.anthropic.com/v1/messages
+curl https://api.groq.com/openai/v1/chat/completions
+
+<span class="c"># 现在：统一走中转代理（将 &lt;your-domain&gt; 替换为你的实际域名）</span>
+curl https://<span class="k">&lt;your-domain&gt;</span>/openai/v1/chat/completions
+curl https://<span class="k">&lt;your-domain&gt;</span>/claude/v1/messages
+curl https://<span class="k">&lt;your-domain&gt;</span>/groq/openai/v1/chat/completions</code></pre>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <p class="section-num">01 · 能力</p>
+      <h2 class="section-title">核心特性</h2>
+    </div>
+
+    <ol class="features">
+      <li>
+        <p class="name">路径转发 <small>Prefix-based routing</small></p>
+        <p class="what">每个服务对应一个独立路径前缀，例如 <code>/openai</code>、<code>/claude</code>、<code>/gemini</code>。前缀后的完整路径原样透传到目标服务，无需逐一适配。</p>
+      </li>
+      <li>
+        <p class="name">请求头过滤 <small>Minimal header pass-through</small></p>
+        <p class="what">默认只透传 <code>accept</code>、<code>content-type</code>、<code>authorization</code> 以及自定义 <code>x-*</code> 头，避免把无关的主机信息、Cookie 或内部标记泄露给上游。</p>
+      </li>
+      <li>
+        <p class="name">安全响应头 <small>Security headers by default</small></p>
+        <p class="what">自动附加 <code>X-Content-Type-Options: nosniff</code>、<code>X-Frame-Options: DENY</code>、<code>Referrer-Policy: no-referrer</code> 等基础安全头。</p>
+      </li>
+      <li>
+        <p class="name">健康检查 <small>Health endpoint</small></p>
+        <p class="what">内置 <code>/health</code> 接口，Docker Compose 可据此做健康检查；也便于负载均衡器或监控脚本判断服务状态。</p>
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <p class="section-num">02 · 设计</p>
+      <h2 class="section-title">设计原则</h2>
+    </div>
+
+    <ol class="principles">
+      <li>
+        <span class="n">01</span>
+        <div class="body">
+          <b>透明转发</b>
+          <span>不修改请求体与响应体，让上游 API 的行为保持原样。</span>
+        </div>
+      </li>
+      <li>
+        <span class="n">02</span>
+        <div class="body">
+          <b>最小权限</b>
+          <span>只透传必要的头，减少攻击面和意外信息泄露。</span>
+        </div>
+      </li>
+      <li>
+        <span class="n">03</span>
+        <div class="body">
+          <b>无状态</b>
+          <span>不缓存、不存储密钥，每个请求独立处理，便于水平扩展。</span>
+        </div>
+      </li>
+      <li>
+        <span class="n">04</span>
+        <div class="body">
+          <b>单一容器</b>
+          <span>一个镜像、一份 Compose 文件即可运行，降低运维复杂度。</span>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section id="services">
+    <div class="section-head">
+      <p class="section-num">03 · 支持</p>
+      <h2 class="section-title">已接入服务</h2>
+      <p class="section-lede">默认包含 15 个常用 AI / 通讯 / 社区服务，路径前缀与目标域名映射如下。</p>
+    </div>
+
+    <table class="services-table">
+      <thead>
+        <tr><th>路径前缀</th><th>目标服务</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>/openai</td><td>OpenAI API</td></tr>
+        <tr><td>/claude</td><td>Anthropic API</td></tr>
+        <tr><td>/gemini</td><td>Google Gemini API</td></tr>
+        <tr><td>/groq</td><td>Groq API</td></tr>
+        <tr><td>/xai</td><td>xAI API</td></tr>
+        <tr><td>/cohere</td><td>Cohere API</td></tr>
+        <tr><td>/together</td><td>Together AI API</td></tr>
+        <tr><td>/huggingface</td><td>Hugging Face Inference API</td></tr>
+        <tr><td>/novita</td><td>Novita AI API</td></tr>
+        <tr><td>/portkey</td><td>Portkey API</td></tr>
+        <tr><td>/fireworks</td><td>Fireworks AI API</td></tr>
+        <tr><td>/openrouter</td><td>OpenRouter API</td></tr>
+        <tr><td>/discord</td><td>Discord API</td></tr>
+        <tr><td>/telegram</td><td>Telegram Bot API</td></tr>
+        <tr><td>/meta</td><td>Meta AI API</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="deploy">
+    <div class="section-head">
+      <p class="section-num">04 · 部署</p>
+      <h2 class="section-title">项目部署</h2>
+    </div>
+
+    <p class="manifesto">
+      将本项目部署到一台可访问目标 AI 服务的 VPS 上，然后把域名指向该服务器，即可作为中转端点对外提供服务。以下命令中的 <code>&lt;your-domain&gt;</code> 请替换为你的实际域名。
+    </p>
+
+    <pre class="code"><code><span class="c"># 1. 克隆项目并进入目录</span>
+cd ai-hub-proxy
+
+<span class="c"># 2. 启动服务（默认映射到宿主机 9000 端口）</span>
+docker compose up -d
+
+<span class="c"># 3. 配置域名解析到 VPS，例如 your-domain.com</span>
+<span class="c"># 4. 在服务器前配置 HTTPS 反代（如 Nginx / Caddy）</span>
+
+<span class="c"># 5. 测试健康检查</span>
+curl https://<span class="k">&lt;your-domain&gt;</span>/health
+
+<span class="c"># 6. 调用 OpenAI API</span>
+curl https://<span class="k">&lt;your-domain&gt;</span>/openai/v1/chat/completions \\
+  -H "Authorization: Bearer $OPENAI_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"model":"gpt-4o","messages":[{"role":"user","content":"hello"}]}'</code></pre>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <p class="section-num">05 · 问答</p>
+      <h2 class="section-title">常见问题</h2>
+    </div>
+
+    <dl class="faq">
+      <div class="faq-pair">
+        <dt>这个代理会保存我的 API Key 吗？</dt>
+        <dd>不会。请求头中的 <code>authorization</code> 会原样透传给上游服务，服务本身不读取、不记录、不缓存任何密钥。</dd>
+      </div>
+      <div class="faq-pair">
+        <dt>如何添加新的上游服务？</dt>
+        <dd>编辑 <code>main.ts</code> 中的 <code>apiMapping</code> 对象，添加新的路径前缀与目标域名，然后重新构建镜像即可。</dd>
+      </div>
+      <div class="faq-pair">
+        <dt>可以修改监听端口吗？</dt>
+        <dd>可以。修改 <code>docker-compose.yml</code> 中的端口映射，例如 <code>9000:8080</code> 表示把容器内的 8080 映射到宿主机的 9000。</dd>
+      </div>
+      <div class="faq-pair">
+        <dt>这个页面也是代理提供的吗？</dt>
+        <dd>是的。访问根路径 <code>/</code> 或 <code>/index.html</code> 时，代理会返回这个静态页面，用于说明项目用途。</dd>
+      </div>
+    </dl>
+  </section>
+
+  <footer class="foot">
+    <div class="mark">
+      <div class="mark-icon">AI</div>
+      <span class="wm-name">AI Hub Proxy</span>
+      <span class="wm-line">统一的 AI 服务反向代理</span>
+    </div>
+    <div class="colophon">
+      <div class="links">
+        <a href="/health">健康检查</a> &middot;
+        <a href="https://github.com/SmartisanNaive/AI-Hub-Proxy">GitHub</a>
+      </div>
+      <p class="ethos">让复杂的 API 调用，回到一个简单的端点。</p>
+    </div>
+  </footer>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,7 @@
+.git
+.env
+.github
+*.md
+.vscode
+.idea
+node_modules
