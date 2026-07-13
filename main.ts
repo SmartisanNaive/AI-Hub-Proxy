@@ -4,12 +4,62 @@
 const PORT = parseInt(Deno.env.get("PORT") ?? "8080");
 const HOST = Deno.env.get("HOST") ?? "0.0.0.0";
 const INDEX_PATH = Deno.env.get("INDEX_PATH") ?? "./public/index.html";
+const PUBLIC_DIR = Deno.env.get("PUBLIC_DIR") ?? "./public";
 
 let indexHtml: string | null = null;
 try {
   indexHtml = await Deno.readTextFile(INDEX_PATH);
 } catch (error) {
   console.warn(`Could not read ${INDEX_PATH}:`, error);
+}
+
+const MIME_TYPES: Record<string, string> = {
+  ".html": "text/html",
+  ".css": "text/css",
+  ".js": "application/javascript",
+  ".json": "application/json",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".gif": "image/gif",
+  ".svg": "image/svg+xml",
+  ".ico": "image/x-icon",
+  ".webp": "image/webp",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+  ".ttf": "font/ttf",
+  ".otf": "font/otf",
+};
+
+function getContentType(path: string): string {
+  const ext = path.slice(path.lastIndexOf(".")).toLowerCase();
+  return MIME_TYPES[ext] ?? "application/octet-stream";
+}
+
+async function serveStaticFile(pathname: string): Promise<Response | null> {
+  // 安全校验：禁止路径穿越
+  if (pathname.includes("..") || pathname.includes("\\")) {
+    return null;
+  }
+
+  const cleanPath = pathname.replace(/^\/+/, "");
+  const filePath = `${PUBLIC_DIR}/${cleanPath}`;
+
+  try {
+    const fileInfo = await Deno.stat(filePath);
+    if (!fileInfo.isFile) return null;
+
+    const file = await Deno.readFile(filePath);
+    return new Response(file, {
+      status: 200,
+      headers: {
+        "Content-Type": getContentType(filePath),
+        "Cache-Control": "public, max-age=86400",
+      },
+    });
+  } catch {
+    return null;
+  }
 }
 
 const apiMapping: Record<string, string> = {
@@ -83,6 +133,10 @@ async function handler(request: Request): Promise<Response> {
       headers: { "Content-Type": "application/json" },
     });
   }
+
+  // 静态资源（logo、字体等）
+  const staticResponse = await serveStaticFile(pathname);
+  if (staticResponse) return staticResponse;
 
   const [prefix, rest] = extractPrefixAndRest(pathname);
   if (!prefix) {
