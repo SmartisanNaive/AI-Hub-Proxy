@@ -43,10 +43,14 @@ function extractPrefixAndRest(pathname: string): [string, string] | [null, null]
 
 function isAllowedHeader(name: string): boolean {
   const lower = name.toLowerCase();
-  return lower === "accept" ||
-    lower === "content-type" ||
-    lower === "authorization" ||
-    lower.startsWith("x-");
+  // 基础必要头
+  if (["accept", "content-type", "authorization"].includes(lower)) return true;
+  // 自定义扩展头（OpenAI/Anthropic SDK 多数功能性头也在此列）
+  if (lower.startsWith("x-")) return true;
+  // 厂商实验性功能头
+  if (lower.startsWith("openai-")) return true;
+  if (lower.startsWith("anthropic-")) return true;
+  return false;
 }
 
 async function handler(request: Request): Promise<Response> {

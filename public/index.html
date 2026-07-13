@@ -602,7 +602,7 @@ curl https://<span class="k">&lt;your-domain&gt;</span>/groq/openai/v1/chat/comp
       </li>
       <li>
         <p class="name">请求头过滤 <small>Minimal header pass-through</small></p>
-        <p class="what">默认只透传 <code>accept</code>、<code>content-type</code>、<code>authorization</code> 以及自定义 <code>x-*</code> 头，避免把无关的主机信息、Cookie 或内部标记泄露给上游。</p>
+        <p class="what">默认透传 <code>accept</code>、<code>content-type</code>、<code>authorization</code>，以及 <code>x-*</code>、<code>openai-*</code>、<code>anthropic-*</code> 等功能性头；过滤 <code>origin</code>、<code>referer</code> 等可能泄露客户端信息的头。</p>
       </li>
       <li>
         <p class="name">安全响应头 <small>Security headers by default</small></p>
@@ -735,6 +735,10 @@ curl https://<span class="k">&lt;your-domain&gt;</span>/openai/v1/chat/completio
       <div class="faq-pair">
         <dt>这个页面也是代理提供的吗？</dt>
         <dd>是的。访问根路径 <code>/</code> 或 <code>/index.html</code> 时，代理会返回这个静态页面，用于说明项目用途。</dd>
+      </div>
+      <div class="faq-pair">
+        <dt>请求头过滤会影响上游缓存命中吗？</dt>
+        <dd>通常不会。上游缓存一般以请求体中的模型、消息内容等作为键，本项目对请求体原样透传，不做修改。被过滤的多是 <code>user-agent</code>、<code>origin</code>、<code>referer</code> 等客户端标识头，它们不参与缓存判定。同时我们保留了 <code>openai-*</code>、<code>anthropic-*</code>、<code>x-*</code> 等厂商功能性头，避免影响实验性功能。</dd>
       </div>
     </dl>
   </section>
