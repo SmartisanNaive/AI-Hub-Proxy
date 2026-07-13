@@ -2,6 +2,8 @@
 
 一个基于 Deno + Docker Compose 的轻量级反向代理，用于统一转发多个 AI / LLM 服务 API。
 
+![AI Hub Proxy Poster](./docs/post.png)
+
 ## 支持的服务
 
 | 路径前缀 | 目标服务 |
