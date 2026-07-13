@@ -24,7 +24,13 @@
 | `/fireworks` | Fireworks AI API |
 | `/openrouter` | OpenRouter API |
 
+## 开箱即用
+
+已于新加坡部署此服务，将你的 baseurl 替换成 https://router.kangtaoai.cn/，即可使用，无需自行部署。
+
 ## 使用方式
+
+先 clone 这个项目到你的服务器上边，Docker 等安装自行搜索教程，此处不在赘述：
 
 ### 1. 启动服务
 
@@ -55,11 +61,25 @@ curl http://localhost:9000/
 # 健康检查
 curl http://localhost:9000/health
 
+# 获取 OpenRouter 模型列表
+curl http://localhost:9000/openrouter/v1/models \
+  -H "Authorization: Bearer $OPENROUTER_API_KEY"
+
+# 查询 OpenRouter 余额
+curl http://localhost:9000/openrouter/v1/credits \
+  -H "Authorization: Bearer $OPENROUTER_API_KEY"
+
 # 调用 OpenAI（需要在请求头中传入 Authorization）
 curl http://localhost:9000/openai/v1/chat/completions \
   -H "Authorization: Bearer $OPENAI_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"gpt-4o","messages":[{"role":"user","content":"hello"}]}'
+
+# 调用 OpenRouter
+curl http://localhost:9000/openrouter/v1/chat/completions \
+  -H "Authorization: Bearer $OPENROUTER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"x-ai/grok-4.5","messages":[{"role":"user","content":"hello"}]}'
 ```
 
 ## 环境变量
@@ -76,5 +96,7 @@ curl http://localhost:9000/openai/v1/chat/completions \
 
 ## 安全说明
 
-- 只透传 `accept`、`content-type`、`authorization` 以及自定义 `x-` 开头的请求头。
+- 透传 `accept`、`content-type`、`authorization`、`referer` / `http-referer`，以及 `x-*`、`openai-*`、`anthropic-*` 等功能性头。
+- 过滤 `origin`、`cookie`、`user-agent` 等可能泄露客户端信息的头。
 - 响应头中添加了 `X-Content-Type-Options`、`X-Frame-Options`、`Referrer-Policy` 等基础安全头。
+- 由于 `fetch()` 会自动解压 gzip 响应，代理会删除下游的 `Content-Encoding` 与 `Content-Length` 头，避免客户端二次解压失败。
