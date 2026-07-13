@@ -26,7 +26,7 @@
 
 ## 开箱即用
 
-已于新加坡部署此服务，将你的 baseurl 替换成 https://router.kangtaoai.cn/，即可使用，无需自行部署。
+已于新加坡部署此服务，将你的 baseurl 替换成 https://router.kangtaoai.cn/ ，即可使用，无需自行部署。
 
 ## 使用方式
 
