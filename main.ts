@@ -5,6 +5,10 @@ const PORT = parseInt(Deno.env.get("PORT") ?? "8080");
 const HOST = Deno.env.get("HOST") ?? "0.0.0.0";
 const INDEX_PATH = Deno.env.get("INDEX_PATH") ?? "./public/index.html";
 const PUBLIC_DIR = Deno.env.get("PUBLIC_DIR") ?? "./public";
+const LOG_LEVEL = Deno.env.get("LOG_LEVEL") ?? "info";
+
+const isDebug = LOG_LEVEL === "debug";
+const isInfo = isDebug || LOG_LEVEL === "info";
 
 let indexHtml: string | null = null;
 try {
@@ -105,6 +109,18 @@ function isAllowedHeader(name: string): boolean {
   return false;
 }
 
+function formatHeadersForLog(headers: Headers): string {
+  const entries: string[] = [];
+  for (const [key, value] of headers.entries()) {
+    if (key.toLowerCase() === "authorization") {
+      entries.push(`${key}: ${value.slice(0, 12)}...`);
+    } else {
+      entries.push(`${key}: ${value}`);
+    }
+  }
+  return entries.join(", ");
+}
+
 async function handler(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const pathname = url.pathname;
@@ -155,6 +171,13 @@ async function handler(request: Request): Promise<Response> {
       }
     }
 
+    if (isInfo) {
+      console.log(`[proxy] ${request.method} ${pathname}${url.search} -> ${targetUrl}`);
+    }
+    if (isDebug) {
+      console.log(`[proxy headers] ${formatHeadersForLog(headers)}`);
+    }
+
     const response = await fetch(targetUrl, {
       method: request.method,
       headers,
@@ -162,12 +185,16 @@ async function handler(request: Request): Promise<Response> {
       redirect: "follow",
     });
 
+    if (isInfo) {
+      console.log(`[proxy] ${request.method} ${pathname} <- ${response.status} ${response.statusText}`);
+    }
+
     // 调试日志：帮助排查上游返回异常的情况
     if (response.status >= 400) {
       const cloned = response.clone();
       const bodyText = await cloned.text();
       console.error(
-        `[proxy error] ${request.method} ${targetUrl} -> ${response.status} ${response.statusText}: ${bodyText.slice(0, 500)}`,
+        `[proxy error] ${request.method} ${targetUrl} -> ${response.status} ${response.statusText}: ${bodyText.slice(0, 1000)}`,
       );
     }
 
