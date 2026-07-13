@@ -10,6 +10,7 @@
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="canonical" href="/">
+<link rel="icon" type="image/png" href="/logo.png">
 <style>
 @font-face {
   font-family: "TsangerJinKai02";
@@ -446,20 +447,16 @@ footer.foot {
   column-gap: 14px;
   align-items: start;
 }
-.foot .mark-icon {
+.foot .mark img {
   grid-row: 1 / span 2;
   width: 56px;
   height: 56px;
   flex-shrink: 0;
   border-radius: 8px;
-  background: var(--brand);
-  color: var(--ivory);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--serif);
-  font-size: 24px;
-  font-weight: 500;
+  object-fit: cover;
+}
+.foot .mark-icon {
+  display: none;
 }
 .foot .mark .wm-name {
   font-family: var(--serif);
@@ -745,7 +742,7 @@ curl https://<span class="k">&lt;your-domain&gt;</span>/openai/v1/chat/completio
 
   <footer class="foot">
     <div class="mark">
-      <div class="mark-icon">AI</div>
+      <img src="/logo.png" alt="AI Hub Proxy">
       <span class="wm-name">AI Hub Proxy</span>
       <span class="wm-line">统一的 AI 服务反向代理</span>
     </div>
